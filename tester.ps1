@@ -82,7 +82,7 @@ function Set-Results {
         # Place Date between blocks
         Get-Date | Out-File "C:\users\Luke\Desktop\all-speed-tests.txt" -Append -NoClobber
         $SpeedtestObj | Out-File -Path "$($DownloadLocation)\all-speed-tests.txt" -Append -NoClobber
-        $SpeedtestObj | Export-CSV -Path "$($DoanloadLocation)\all-speed-tests.csv" -Append -NoTypeInformation -NoClobber
+        $SpeedtestObj | Export-CSV -Path "$($DownloadLocation)\all-speed-tests.csv" -Append -NoTypeInformation -NoClobber
 
 
         # @TODO also append a CSV File 
