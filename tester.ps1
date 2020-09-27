@@ -1,3 +1,9 @@
+# #######################
+# THANKS TO:
+# Kelvin Tegelaar
+# https://www.cyberdrain.com/monitoring-with-powershell-monitoring-internet-speeds/
+# 
+#@Todo set logging levels
 function Start-NetSpeedTest {
     [CmdletBinding(PositionalBinding=$false)]
     param
@@ -41,12 +47,18 @@ function Get-SpeedTestCLI {
         [string]$DownloadURL = ""
     )
     try {
+        Write-Host "Looking for your installation of SpeedTest CLI";
         $TestDownloadLocation = Test-Path $DownloadLocation;
         if (!$TestDownloadLocation) {
+            Write-Host "Downloading SpeedTest CLI"
             new-item $DownloadLocation -ItemType Directory -force;
             Invoke-WebRequest -Uri $DownloadURL -OutFile "$($DownloadLocation)\speedtest.zip";
+            Write-Host "Extracting..."
             Expand-Archive "$(DownloadLocation)\speedtest.zip" -DestinationPath $DownloadLocation -Force;
 
+        }
+        else {
+            Write-Host "Found. Already Installed..."
         }
     }
     catch {
@@ -59,30 +71,38 @@ function Set-Results {
     param()
     try {
         # Execulte the Speed Test with an output of JSON
+        Write-Host "Beginning speed test...";
         $SpeedtestResults = & "$($DownloadLocation)\speedtest.exe" --format=json
+        Write-Host "Test completed...";
+        
+        [PSCustomObject]$SpeedtestObj = @{};
 
-        [PSCustomObject]$SpeedtestObj = @{
-            time = $SpeedtestResults.time;
-            downloadSpeed = $SpeedtestResults.download.bandwidth;
-            uploadSpeed = $SpeedtestResults.upload.bandwidth;
-            packetLoss = $SpeedtestResults.packetLoss;
-            jitter = $SpeedtestResults.ping.jitter;
-            latency = $SpeedtestResults.ping.latency;
-            serverHost = $SpeedtestResults.server.host;
-            serverLocation = $SpeedtestResults.server.location;
-            serverIp = $SpeedtestResults.server.ip;
-            ourIP = $SpeedtestResults.interface.externalIp;
-            vpn = $SpeedtestResults.interface.isVpn;
-            isp = $SpeedtestResults.isp;
-            resultsURL = $SpeedtestResults.result.url;
+        $SpeedtestObj = [PSCustomObject]@{
+            time = [string]$SpeedtestResults.timestamp
+            downloadSpeed = $SpeedtestResults.download.bandwidth
+            uploadSpeed = $SpeedtestResults.upload.bandwidth
+            packetLoss = $SpeedtestResults.packetLoss
+            jitter = $SpeedtestResults.ping.jitter
+            latency = $SpeedtestResults.ping.latency
+            serverHost = $SpeedtestResults.server.host
+            serverLocation = $SpeedtestResults.server.location
+            serverIp = $SpeedtestResults.server.ip
+            ourIP = $SpeedtestResults.interface.externalIp
+            vpn = [bool]$SpeedtestResults.interface.isVpn
+            isp = $SpeedtestResults.isp
+            resultsURL = $SpeedtestResults.result.url
         }
+
+        Write-Host "Download Speed: $($SpeedtestObj.downloadSpeed) Upload Speed: $($SpeedtestObj.uploadSpeed)" -NoNewline
+        Write-host "Latency $($SpeedtestObj.latency) Jitter: $($SpeedtestObj.jitter)"
 
         #Export Object to text file
         $SpeedtestObj | Out-File -Path "$($DownloadLocation)\LastResults.txt" -Force
         # Place Date between blocks
-        Get-Date | Out-File "C:\users\Luke\Desktop\all-speed-tests.txt" -Append -NoClobber
-        $SpeedtestObj | Out-File -Path "$($DownloadLocation)\all-speed-tests.txt" -Append -NoClobber
-        $SpeedtestObj | Export-CSV -Path "$($DownloadLocation)\all-speed-tests.csv" -Append -NoTypeInformation -NoClobber
+        Get-Date | Out-File "C:\users\Luke\Desktop\all-speed-tests.txt" -Append -NoClobber -Force
+        $SpeedtestObj | Out-File -Path "$($DownloadLocation)\all-speed-tests.txt" -Append -NoClobber -Force
+        $SpeedtestObj | Export-CSV -Path "$($DownloadLocation)\all-speed-tests.csv" -Append -NoTypeInformation -NoClobber -Force
+        Write-Host "Written to files."
 
 
         # @TODO also append a CSV File 
