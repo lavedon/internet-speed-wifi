@@ -47,22 +47,22 @@ function Get-SpeedTestCLI {
         [string]$DownloadURL = ""
     )
     try {
-        Write-Host "Looking for your installation of SpeedTest CLI";
+        Write-Verbose "Looking for your installation of SpeedTest CLI";
         $TestDownloadLocation = Test-Path $DownloadLocation;
         if (!$TestDownloadLocation) {
-            Write-Host "Downloading SpeedTest CLI"
+            Write-Verbose "Downloading SpeedTest CLI"
             new-item $DownloadLocation -ItemType Directory -force;
             Invoke-WebRequest -Uri $DownloadURL -OutFile "$($DownloadLocation)\speedtest.zip";
-            Write-Host "Extracting..."
+            Write-Verbose "Extracting..."
             Expand-Archive "$(DownloadLocation)\speedtest.zip" -DestinationPath $DownloadLocation -Force;
 
         }
         else {
-            Write-Host "Found. Already Installed..."
+            Write-Verbose "Found. Already Installed..."
         }
     }
     catch {
-        write-host "The download and extraction of SpeedtestCLI failed. Error: $($_.Exception.Message)"
+        Write-Verbose "The download and extraction of SpeedtestCLI failed. Error: $($_.Exception.Message)"
         exit 1
     }
 }
@@ -71,19 +71,20 @@ function Set-Results {
     param()
     try {
         # Execulte the Speed Test with an output of JSON
-        Write-Host "Beginning speed test...";
+        Write-Verbose "Beginning speed test...";
         $SpeedtestResults = & "$($DownloadLocation)\speedtest.exe" --format=json
-        Write-Host "Test completed...";
+        Write-Verbose "Test completed...";
         
+        $SpeedtestResults = $SpeedtestResults | ConvertFrom-Json
         [PSCustomObject]$SpeedtestObj = @{};
 
         $SpeedtestObj = [PSCustomObject]@{
             time = [string]$SpeedtestResults.timestamp
-            downloadSpeed = $SpeedtestResults.download.bandwidth
-            uploadSpeed = $SpeedtestResults.upload.bandwidth
+            downloadSpeed = [math]::Round($SpeedtestResults.download.bandwidth / 1000000 * 8, 4)
+            uploadSpeed = [math]::Round($SpeedtestResults.upload.bandwidth / 1000000 * 8, 4)
             packetLoss = $SpeedtestResults.packetLoss
-            jitter = $SpeedtestResults.ping.jitter
-            latency = $SpeedtestResults.ping.latency
+            jitter = [math]::Round($SpeedtestResults.ping.jitter, 4)
+            latency = [math]::Round($SpeedtestResults.ping.latency, 4)
             serverHost = $SpeedtestResults.server.host
             serverLocation = $SpeedtestResults.server.location
             serverIp = $SpeedtestResults.server.ip
@@ -93,22 +94,22 @@ function Set-Results {
             resultsURL = $SpeedtestResults.result.url
         }
 
-        Write-Host "Download Speed: $($SpeedtestObj.downloadSpeed) Upload Speed: $($SpeedtestObj.uploadSpeed)" -NoNewline
-        Write-host "Latency $($SpeedtestObj.latency) Jitter: $($SpeedtestObj.jitter)"
+        Write-Verbose "Download Speed: $($SpeedtestObj.downloadSpeed) Upload Speed: $($SpeedtestObj.uploadSpeed)" 
+        Write-Verbose "Latency $($SpeedtestObj.latency) Jitter: $($SpeedtestObj.jitter)"
 
         #Export Object to text file
-        $SpeedtestObj | Out-File -Path "$($DownloadLocation)\LastResults.txt" -Force
+        $SpeedtestObj | Out-File "$($DownloadLocation)\LastResults.txt" -Force
         # Place Date between blocks
         Get-Date | Out-File "C:\users\Luke\Desktop\all-speed-tests.txt" -Append -NoClobber -Force
-        $SpeedtestObj | Out-File -Path "$($DownloadLocation)\all-speed-tests.txt" -Append -NoClobber -Force
-        $SpeedtestObj | Export-CSV -Path "$($DownloadLocation)\all-speed-tests.csv" -Append -NoTypeInformation -NoClobber -Force
-        Write-Host "Written to files."
+        $SpeedtestObj | Out-File "$($DownloadLocation)\all-speed-tests.txt" -Append -NoClobber -Force
+        $SpeedtestObj | Export-CSV "$($DownloadLocation)\all-speed-tests.csv" -Append -NoTypeInformation -NoClobber -Force
+        Write-Verbose "Written to files."
 
 
         # @TODO also append a CSV File 
         }
     catch {
-        Write-Host "Could not get Speed Test results from SpeedTest CLI.  Error: $($_.Exception.Message)" 
+        Write-Verbose "Could not get Speed Test results from SpeedTest CLI.  Error: $($_.Exception.Message)" 
         }
     }
     # Main Part of Code
