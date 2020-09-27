@@ -76,9 +76,13 @@ function Set-Results {
         Write-Verbose "Test completed...";
         
         $SpeedtestResults = $SpeedtestResults | ConvertFrom-Json
-        [PSCustomObject]$SpeedtestObj = @{};
+        $SpeedtestObj = @{};
 
-        $SpeedtestObj = [PSCustomObject]@{
+        # @TODO pass this SpeedtestObj as a body in a POST Request
+        # @TODO SpeedtestObj.psobject.gettype() was returning PS Custom Object
+        # Need to change formatting for it to work in a POST request body
+
+        $SpeedtestObj = @{
             time = [string]$SpeedtestResults.timestamp
             downloadSpeed = [math]::Round($SpeedtestResults.download.bandwidth / 1000000 * 8, 4)
             uploadSpeed = [math]::Round($SpeedtestResults.upload.bandwidth / 1000000 * 8, 4)
@@ -102,6 +106,7 @@ function Set-Results {
         # Place Date between blocks
         Get-Date | Out-File "C:\users\Luke\Desktop\all-speed-tests.txt" -Append -NoClobber -Force
         $SpeedtestObj | Out-File "$($DownloadLocation)\all-speed-tests.txt" -Append -NoClobber -Force
+        # This is not writing correctly
         $SpeedtestObj | Export-CSV "$($DownloadLocation)\all-speed-tests.csv" -Append -NoTypeInformation -NoClobber -Force
         Write-Verbose "Written to files."
 
