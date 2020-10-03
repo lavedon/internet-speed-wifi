@@ -124,4 +124,9 @@ function Set-Results {
     Set-Results;
     #End begin block
     }
+function Set-PostData {
+    param()
+    $postBody = $SpeedtestObj | ConvertFrom-Json;
+    Write-Verbose "Sending $($postBody)";
+    }
 }
