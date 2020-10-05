@@ -18,16 +18,14 @@ const doGet = (event = {}) => {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 };
 
-function openSheet() {
+function updateSheet() {
   const ss = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/106dx2kUYgKkuGfMH6iqgIPeRpMPncz6DWzAGaPgWG_g/");
   Logger.log("opened Spreadsheet");
   Logger.log(ss.getId());
   const sheet = ss.getSheets()[0];
   Logger.log("Got sheet from Spreadsheet");
   Logger.log(sheet.getSheetName());
-  
-  Logger.log("Getting range.");
-  let myRange = sheet.getRange(2,1,14,4);
 
-  Logger.log("Number of rows in range is " + myRange.getNumRows()+ " Number of columns in range is " + myRange.getNumColumns());
+  sheet.appendRow([data.time])
+  
 }
