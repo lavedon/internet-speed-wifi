@@ -9,7 +9,7 @@ function Start-NetSpeedTest {
     param
     (
         [parameter(Mandatory=$false)]
-        [String]$GoogleSheetURL,
+        [String]$GoogleWebAppURL="https://script.google.com/macros/s/AKfycbyz6vLweIk9CCyh7uSwGhi6YiHXp2M3uM3Ef4nCXkspmhzr_bpU/exec",
 
         # What is the minimum % of packetloss
         # Before an alert is raised.
@@ -76,13 +76,13 @@ function Set-Results {
         Write-Verbose "Test completed...";
         
         $SpeedtestResults = $SpeedtestResults | ConvertFrom-Json
-        $SpeedtestObj = @{};
+        $global:SpeedtestObj = @{};
 
         # @TODO pass this SpeedtestObj as a body in a POST Request
         # @TODO SpeedtestObj.psobject.gettype() was returning PS Custom Object
         # Need to change formatting for it to work in a POST request body
 
-        $SpeedtestObj = @{
+        $global:SpeedtestObj = @{
             time = [string]$SpeedtestResults.timestamp
             downloadSpeed = [math]::Round($SpeedtestResults.download.bandwidth / 1000000 * 8, 4)
             uploadSpeed = [math]::Round($SpeedtestResults.upload.bandwidth / 1000000 * 8, 4)
@@ -98,6 +98,7 @@ function Set-Results {
             resultsURL = $SpeedtestResults.result.url
         }
 
+        Write-Verbose "Speedtest Object is of what type? $($SpeedtestObj.getType())"
         Write-Verbose "Download Speed: $($SpeedtestObj.downloadSpeed) Upload Speed: $($SpeedtestObj.uploadSpeed)" 
         Write-Verbose "Latency $($SpeedtestObj.latency) Jitter: $($SpeedtestObj.jitter)"
 
@@ -122,11 +123,15 @@ function Set-Results {
         Get-SpeedTestCLI;
     }
     Set-Results;
+    Set-PostData;
     #End begin block
     }
+}
 function Set-PostData {
     param()
-    $postBody = $SpeedtestObj | ConvertFrom-Json;
+    Write-Verbose "Set-PostData called."
+    $postBody = (ConvertTo-Json $SpeedtestObj);
     Write-Verbose "Sending $($postBody)";
+    Write-Verbose "Sending to this Google App Script Web App URL: $($GoogleWebAppURL).";
+    Invoke-RestMethod -Method POST -Uri $GoogleWebAppURL -Body $postBody;
     }
-}
