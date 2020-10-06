@@ -6,7 +6,8 @@
 #@Todo set logging levels
 
 try {
-    $importedURL = Get-Content -Path ".\gas-url.txt"
+    # Make this relative 
+    $importedURL = Get-Content -Path "C:\my-coding-projects\internet-tester\gas-url.txt"
 }
 catch {
     Write-Host = "no gas-url.txt file"
