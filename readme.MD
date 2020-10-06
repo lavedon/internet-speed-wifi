@@ -33,3 +33,7 @@ Get-ScheduledJob
 
 Disable future jobs:
 Unregister-ScheduledJob -Id 1
+
+Alerts (i.e. alerting user when packet loss has reached a certain threshold - alerting user when latency has jumped up 
+at a shocking rate, etc.) is not yet implemented...
+due to sloth and torpor.
