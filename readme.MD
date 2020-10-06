@@ -1,5 +1,3 @@
-#########
-READ ME:
 
 By default, the script runs the main method in verbose mode 
 The script will auto install the SpeedTest CLI if it is not present.
