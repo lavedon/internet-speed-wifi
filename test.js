@@ -11,15 +11,6 @@ const doPost = (request = {}) => {
   return ContentService.createTextOutput("POST request received.  Your data time " + data.time);
 }
 
-const doGet = (event = {}) => {
-  const { parameter } = event;
-  const { name = 'Anonymous', color = 'Black' } = parameter;
-  const html = `<p><b>${name}'s</b> favorite color is <font color="${color}">${color}</font></p>`;
-  return HtmlService.createHtmlOutput(html)
-    .setTitle('Apps Script Webpage')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-};
-
 function updateSheet(data) {
   Logger.log("appending " + data.time + " To sheet");
   const ss = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/106dx2kUYgKkuGfMH6iqgIPeRpMPncz6DWzAGaPgWG_g/");
