@@ -4,12 +4,20 @@
 # https://www.cyberdrain.com/monitoring-with-powershell-monitoring-internet-speeds/
 # 
 #@Todo set logging levels
+
+try {
+    $importedURL = Get-Content -Path ".\gas-url.txt"
+}
+catch {
+    Write-Host = "no gas-url.txt file"
+}
+
 function Start-NetSpeedTest {
     [CmdletBinding(PositionalBinding=$false)]
     param
     (
         [parameter(Mandatory=$false)]
-        [String]$GoogleWebAppURL="https://script.google.com/macros/s/AKfycbyz6vLweIk9CCyh7uSwGhi6YiHXp2M3uM3Ef4nCXkspmhzr_bpU/exec",
+        [String]$GoogleWebAppURL=$importedURL,
 
         # What is the minimum % of packetloss
         # Before an alert is raised.
@@ -135,3 +143,5 @@ function Set-PostData {
     Write-Verbose "Sending to this Google App Script Web App URL: $($GoogleWebAppURL).";
     Invoke-RestMethod -Method POST -Uri $GoogleWebAppURL -Body $postBody;
     }
+
+Start-NetSpeedTest -SkipInstallCheck -Verbose;
